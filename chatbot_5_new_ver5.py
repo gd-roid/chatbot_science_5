@@ -48,12 +48,19 @@ def gpt(messages, temp=0.2):
 @st.cache_resource
 def get_sheets_client():
     try:
+        import os
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-        creds = ServiceAccountCredentials.from_json_keyfile_name("service_account.json", scope)
+        
+        # Streamlit Cloud에서 실행 시
+        if "gcp_service_account" in st.secrets:
+            creds = ServiceAccountCredentials.from_json_keyfile_dict(
+                st.secrets["gcp_service_account"], scope
+            )
+        # 로컬에서 실행 시
+        else:
+            creds = ServiceAccountCredentials.from_json_keyfile_name("service_account.json", scope)
+        
         return gspread.authorize(creds)
-    except FileNotFoundError:
-        st.error("❌ service_account.json 파일을 찾을 수 없습니다.")
-        st.stop()
     except Exception as e:
         st.error(f"❌ Google Sheets 연결 오류: {e}")
         st.stop()
@@ -1217,4 +1224,5 @@ with st.sidebar:
         st.write(f"🎯 **{completed}**개 완료 / 전체 **{total}**개")
     
     st.markdown("---")
+
     st.info("💡 **선생님 팁**\n\n천천히, 차근차근 생각하면서 풀어봐요!")
