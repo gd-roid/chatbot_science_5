@@ -214,7 +214,6 @@ def check_correct(item, ans):
         "학생 답이 정답과 의미상 같은지만 판단해. "
         "**중요1: 문제에서 이유를 요구했는데 학생이 이유를 안 쓰면 is_correct: false** "
         "**중요2: '거리/시간'과 '시간/거리'는 완전히 다르다. 순서가 바뀌면 틀린 것이다.** "
-** "ㄷ
         "JSON만 출력: {\"is_correct\": true/false}"
     )
     usr = f"""
@@ -1227,4 +1226,5 @@ with st.sidebar:
     st.markdown("---")
 
     st.info("💡 **선생님 팁**\n\n천천히, 차근차근 생각하면서 풀어봐요!")
+
 
