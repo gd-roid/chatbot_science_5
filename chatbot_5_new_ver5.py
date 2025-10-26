@@ -952,7 +952,7 @@ def handle_metacog_answer(ans):
 
 # 평가 시작
 # 평가 시작 - 초기 상태일 때만 표시
-if st.session_state.mode == "init":
+if st.session_state.mode == "idle":
     if st.button("평가 시작", key="start"):
         if not st.session_state.student.strip():
             st.error("❌ 이름을 입력해주세요!")
@@ -1283,6 +1283,7 @@ with st.sidebar:
     st.markdown("---")
 
     st.info("💡 **선생님 팁**\n\n천천히, 차근차근 생각하면서 풀어봐요!")
+
 
 
 
