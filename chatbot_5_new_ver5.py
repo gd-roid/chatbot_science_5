@@ -194,25 +194,29 @@ def rule_match(ans, correct, allowed, qid=""):
     return False
 
 def check_correct(item, ans):
-    """정답 확인 - 이유 요구 엄격 판정"""
+    """정답 확인 - GPT 유연 판단"""
     qtext = item.get('변형', item['질문'])
     needs_reason = any(k in qtext for k in ["이유를 쓰", "이유도", "왜 그런지", "근거를 쓰", "이유는"])
     
-    if needs_reason:
-        has_reason = re.search(r"(때문|왜냐|그래서|라서|므로|해서)", ans)
-        # 핵심 키워드가 있으면 이유로 인정
-        has_key_concept = any(k in ans for k in ["시간", "짧", "빠르", "느리", "거리", "멀", "이동"])
-        # 이유 접속사가 없어도 핵심 키워드 + 최소 길이면 인정
-        if not has_reason and not has_key_concept and len(ans.strip()) < 10:
-            return False
-    
+    # rule_match로 빠른 정답 판정 (확실한 경우만)
     if rule_match(ans, item['정답'], item['허용답'], qid=item['id']):
         if needs_reason:
+            # 이유가 있는지 간단히 체크
             has_reason = re.search(r"(때문|왜냐|그래서|라서|므로|해서)", ans)
-            has_key_concept = any(k in ans for k in ["시간", "짧", "빠르", "느리", "거리", "멀", "이동"])  # ← 추가
-            return has_reason or has_key_concept or len(ans.strip()) >= 15  # ← 수정
+            has_key_concept = any(k in ans for k in [
+                "시간", "짧", "빠르", "빨리", "느리", "빠름",
+                "거리", "멀", "이동", "도착", "먼저", "늦"
+            ])
             
-        return True
+            # 확실히 이유가 있으면 바로 정답
+            if has_reason or has_key_concept or len(ans.strip()) >= 15:
+                return True
+            # 애매하면 GPT에게 물어보기 (차단하지 않음!)
+        else:
+            # 이유 불필요 문제는 바로 정답
+            return True
+    
+    # rule_match 실패하거나 이유가 애매한 경우 → GPT 판단
     sys = (
         "너는 초등 5학년 과학 선생님이다. "
         "학생 답이 정답과 의미상 같은지 판단해. "
@@ -222,13 +226,13 @@ def check_correct(item, ans):
         "  1. 학생이 정답을 선택/입력했는지 확인\n"
         "  2. 이유가 논리적으로 타당한지 확인\n"
         "  3. 이유가 문제와 관련있는지 확인\n"
-        "  4. 이유 표현이 짧아도 핵심을 담았으면 인정\n"
-        "  예시: '시간이 짧아서', '거리가 멀어서', '빠르기 때문' 등은 모두 인정\n"
+        "  4. 이유 표현이 짧거나 간결해도 의미가 통하면 인정\n"
+        "  예시: '빨리 도착', '시간 짧음', '거리 멀어서' 등 모두 인정\n"
         "\n"
         "**[오답 케이스]**\n"
-        "- 이유를 요구했는데 답만 쓴 경우 (예: 'C', '자전거'만 입력)\n"
-        "- 이유가 문제와 무관한 경우 (예: '색깔이 예쁨')\n"
-        "- 논리적으로 틀린 경우\n"
+        "- 이유를 요구했는데 답만 쓴 경우 (예: 'C', '자전거'만)\n"
+        "- 이유가 문제와 완전히 무관한 경우 (예: '색깔 예쁨')\n"
+        "- 논리적으로 완전히 틀린 경우\n"
         "\n"
         "**중요: '거리/시간'과 '시간/거리'는 완전히 다르다. 순서가 바뀌면 틀린 것이다.**\n"
         "\n"
@@ -1274,6 +1278,7 @@ with st.sidebar:
     st.markdown("---")
 
     st.info("💡 **선생님 팁**\n\n천천히, 차근차근 생각하면서 풀어봐요!")
+
 
 
 
