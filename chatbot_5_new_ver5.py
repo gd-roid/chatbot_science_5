@@ -726,10 +726,13 @@ def evaluate(cur, ans):
     qtext = cur.get('변형', cur.get('질문', ''))
     is_calc = (cur.get('문항유형','') == '계산')
     is_reading = any(k in qtext for k in ["읽을까", "읽나요", "읽습니까", "문장으로"])
-    unit_in_key = has_unit_pattern(cur.get('정답','')) or has_unit_pattern(cur.get('허용답',''))
-    
-    # 단위 체크 (계산 문제이거나 정답에 단위가 있는 경우)
-    if (is_calc or unit_in_key) and not is_reading:
+        
+    # 단위 체크 (속력 계산 문제만)
+    is_speed_calc = "속력" in qtext or "속도" in qtext or "빠르기" in qtext
+    if is_speed_calc and not is_reading:
+        def has_unit_pattern(text):
+            return bool(re.search(r'\b(?:m/s|km/h|m/초|km/시간|매초|매시간)\b', text or "", flags=re.I))
+        
         numbers = re.findall(r'\d+\.?\d*', ans)
         has_unit_ans = has_unit_pattern(ans)
         
@@ -746,6 +749,7 @@ def evaluate(cur, ans):
                 st.session_state.attempts -= 1
                 push("assistant", f"✅ 답은 맞았어요! 단위도 함께 써주면 더 완벽해요. 단위를 함께 써볼까요?")
                 return
+            
             # 숫자도 틀렸으면 그냥 오답 처리 (아래로 계속)
 
     st.session_state.unit_asked = False
@@ -1283,6 +1287,7 @@ with st.sidebar:
     st.markdown("---")
 
     st.info("💡 **선생님 팁**\n\n천천히, 차근차근 생각하면서 풀어봐요!")
+
 
 
 
