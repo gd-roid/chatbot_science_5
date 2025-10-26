@@ -403,46 +403,49 @@ def evaluate_metacog_answer(objective, question, student_answer):
     """학생의 메타인지 답변을 GPT로 평가"""
     is_movement_question = "운동하는 물체의 특징" in question
     is_unit_question = "속력의 단위" in question
-sys = (
+    sys = (
         "너는 초등 5학년 과학 선생님이다. "
         "학생이 자기 언어로 개념을 설명한 답변을 평가해.\n\n"
         "**평가 기준:**\n"
         "1. 핵심 개념 포함 여부 (거리, 시간, 속력 관계 등)\n"
-        "2. 자기 언어로 표현했는지 (교과서 암기 vs 이해)\n"
-        "3. 예시나 구체적 설명 포함 여부\n"  # ← 제거!
-        "4. 오개념 유무\n\n"
-        "**답변이 너무 짧거나 (10자 이하) 핵심 개념이 빠졌으면 needs_more: true**\n"
+        "2. 논리적으로 맞는지\n"
+        "3. 오개념 유무\n\n"
+        "**중요:**\n"
+        "- 답변이 짧아도 핵심 개념이 정확하면 excellent로 평가\n"
+        "- 예시: '거리/시간', '위치가 변한다' 등 간결한 답도 충분함\n"
+        "- 정답을 맞춘 학생에게 불필요한 예시나 추가 설명을 요구하지 말 것\n\n"
+        "**needs_more = true 조건:**\n"
+        "- 핵심 개념이 빠졌거나\n"
+        "- 설명이 애매하거나\n"
+        "- 논리적으로 불완전할 때만\n\n"
         "**오개념이 있으면 has_misconception: true**\n\n"
         "JSON 형식으로 출력:\n"
         "{\n"
         '  "understanding_level": "excellent/good/needs_improvement",\n'
         '  "needs_more": true/false,\n'
         '  "has_misconception": true/false,\n'
-        '  "feedback": "학생에게 줄 피드백 (2-3문장, 이모지 포함)"\n'
+        '  "feedback": "학생에게 줄 피드백 (칭찬 위주, 1-2문장, 이모지 포함)"\n'
         "}"
     )
     
     # 운동하는 물체의 특징 질문에 대한 특별 지침 추가
     if is_movement_question:
         sys += (
-            "**특별 지침 (운동하는 물체의 특징 질문):**\n"
+            "\n**특별 지침 (운동하는 물체의 특징 질문):**\n"
             "- '거리가 변한다', '위치가 바뀐다', '장소가 달라진다', '이동한다' 등의 표현이 있으면 excellent\n"
             "- 간단하게 위치/거리 변화를 언급하면 충분함\n"
-            "- 복잡한 설명을 요구하지 말 것\n\n"
+            "- 복잡한 설명을 요구하지 말 것\n"
         )
     
     # 속력의 단위 질문에 대한 특별 지침 추가
     if is_unit_question:
         sys += (
-            "**특별 지침 (속력의 단위 질문):**\n"
+            "\n**특별 지침 (속력의 단위 질문):**\n"
             "- 'km/h' 또는 'm/s' 중 하나만 언급해도 excellent\n"
-            "- 둘 다 언급하면 더 좋지만, 하나만 써도 충분함. 대신 언급되지 않은 단위를 소개해주기\n"
-            "- '다른 단위도 알아보자'는 식의 피드백 금지\n\n"
+            "- 둘 다 언급하면 더 좋지만, 하나만 써도 충분함\n"
+            "- 피드백에서 다른 단위도 있다는 걸 간단히 언급 (예: 'm/s도 있어요')\n"
         )
 
-    sys += (
-        "**답변이 너무 짧거나 (10자 이하) 핵심 개념이 빠졌으면 needs_more: true**\n"
-    )
     usr = f"""
 [성취기준] {objective}
 [질문] {question}
@@ -1280,6 +1283,7 @@ with st.sidebar:
     st.markdown("---")
 
     st.info("💡 **선생님 팁**\n\n천천히, 차근차근 생각하면서 풀어봐요!")
+
 
 
 
