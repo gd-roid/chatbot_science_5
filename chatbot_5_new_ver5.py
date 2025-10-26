@@ -10,7 +10,10 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 # ==================== 설정 ====================
 openai.api_key = os.environ.get("OPENAI_API_KEY")
-
+if not openai.api_key:
+    st.error("❌ OPENAI_API_KEY 환경 변수가 설정되지 않았습니다!")
+    st.info("💡 Streamlit Cloud에서는 Settings > Secrets에서 설정하세요.")
+    st.stop()
 SPREADSHEET_TITLE = "chatbot_QA"
 QNA_TAB = "QNA"
 LOG_TAB = "Sheet1"
@@ -48,7 +51,7 @@ def gpt(messages, temp=0.2):
 @st.cache_resource
 def get_sheets_client():
     try:
-        import os
+        
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
         
         # Streamlit Cloud에서 실행 시
@@ -206,14 +209,29 @@ def check_correct(item, ans):
     if rule_match(ans, item['정답'], item['허용답'], qid=item['id']):
         if needs_reason:
             has_reason = re.search(r"(때문|왜냐|그래서|라서|므로|해서)", ans)
-            return has_reason or len(ans.strip()) >= 15
+            has_key_concept = any(k in ans for k in ["시간", "짧", "빠르", "느리", "거리", "멀", "이동"])  # ← 추가
+            return has_reason or has_key_concept or len(ans.strip()) >= 15  # ← 수정
+            
         return True
-    
     sys = (
         "너는 초등 5학년 과학 선생님이다. "
-        "학생 답이 정답과 의미상 같은지만 판단해. "
-        "**중요1: 문제에서 이유를 요구했는데 학생이 이유를 안 쓰면 is_correct: false** "
-        "**중요2: '거리/시간'과 '시간/거리'는 완전히 다르다. 순서가 바뀌면 틀린 것이다.** "
+        "학생 답이 정답과 의미상 같은지 판단해. "
+        "\n"
+        "**[이유 판단 규칙]**\n"
+        "- 문제에서 '이유를 쓰시오'를 요구한 경우:\n"
+        "  1. 학생이 정답을 선택/입력했는지 확인\n"
+        "  2. 이유가 논리적으로 타당한지 확인\n"
+        "  3. 이유가 문제와 관련있는지 확인\n"
+        "  4. 이유 표현이 짧아도 핵심을 담았으면 인정\n"
+        "  예시: '시간이 짧아서', '거리가 멀어서', '빠르기 때문' 등은 모두 인정\n"
+        "\n"
+        "**[오답 케이스]**\n"
+        "- 이유를 요구했는데 답만 쓴 경우 (예: 'C', '자전거'만 입력)\n"
+        "- 이유가 문제와 무관한 경우 (예: '색깔이 예쁨')\n"
+        "- 논리적으로 틀린 경우\n"
+        "\n"
+        "**중요: '거리/시간'과 '시간/거리'는 완전히 다르다. 순서가 바뀌면 틀린 것이다.**\n"
+        "\n"
         "JSON만 출력: {\"is_correct\": true/false}"
     )
     usr = f"""
@@ -571,6 +589,7 @@ def init_session():
     st.session_state.practice_log = []
     st.session_state.weak_objectives = []
     st.session_state.unit_asked = False
+    st.session_state.reason_asked = False 
     st.session_state.scope_keywords = set()
     st.session_state.input_counter = 0
     st.session_state.ignore_next_input = False
@@ -596,6 +615,7 @@ S("assessment_log", [])
 S("practice_log", [])
 S("weak_objectives", [])
 S("unit_asked", False)
+S("reason_asked", False)
 S("scope_keywords", set())
 S("input_counter", 0)
 S("ignore_next_input", False)
@@ -682,6 +702,7 @@ def next_question():
     st.session_state.current = base
     st.session_state.attempts = 0
     st.session_state.unit_asked = False
+    st.session_state.reason_asked = False
     
     phase_label = "평가" if st.session_state.phase == "assessment" else "연습"
     push("assistant", f"**[{phase_label}] [{base['id']}]** {base['변형']}\n\n답을 입력해주세요!")
@@ -721,6 +742,34 @@ def evaluate(cur, ans):
             # 숫자도 틀렸으면 그냥 오답 처리 (아래로 계속)
 
     st.session_state.unit_asked = False
+    # 이유 요구 문제 체크
+    qtext = cur.get('변형', cur.get('질문', ''))
+    needs_reason = any(k in qtext for k in ["이유를 쓰", "이유도", "왜 그런지", "근거를 쓰", "이유는"])
+    
+    if needs_reason and not st.session_state.get('reason_asked', False):
+        ans_clean = ans.strip()
+        
+        # 정답과 정확히 일치하는지만 체크 (답만 입력한 경우)
+        ans_upper = ans_clean.upper()
+        correct_upper = cur.get('정답', '').strip().upper()
+        
+        # 정답과 정확히 일치
+        if ans_upper == correct_upper:
+            st.session_state.reason_asked = True
+            st.session_state.attempts -= 1
+            push("assistant", "✅ 답은 맞았어요! 이유도 함께 설명해주면 더 좋겠어요. 왜 그렇게 생각했는지 설명해볼까요?")
+            return
+        
+        # 허용답과 정확히 일치
+        allowed_list = parse_allowed(cur.get('허용답', ''))
+        for allowed_ans in allowed_list:
+            if ans_upper == allowed_ans.strip().upper():
+                st.session_state.reason_asked = True
+                st.session_state.attempts -= 1
+                push("assistant", "✅ 답은 맞았어요! 이유도 함께 설명해주면 더 좋겠어요. 왜 그렇게 생각했는지 설명해볼까요?")
+                return
+    
+    st.session_state.reason_asked = False
 
     is_correct = check_correct(cur, ans)
     feedback = generate_feedback(phase, is_correct, att, cur, ans)
@@ -751,7 +800,6 @@ def evaluate(cur, ans):
     
     # 다음 액션
     if is_correct:
-        st.balloons()  # 🎈 풍선 효과 추가
         push("assistant", f"{feedback}\n\n다음 문제로 가요!")
         next_question()
     elif att >= 3:
@@ -1226,5 +1274,6 @@ with st.sidebar:
     st.markdown("---")
 
     st.info("💡 **선생님 팁**\n\n천천히, 차근차근 생각하면서 풀어봐요!")
+
 
 
