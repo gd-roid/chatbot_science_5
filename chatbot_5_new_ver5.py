@@ -1265,7 +1265,7 @@ with st.sidebar:
     # 완료 시
     if current_mode == "ended":
         st.markdown("---")
-        st.balloons()
+        # st.balloons()
         st.success("### 🎉 모든 단계 완료!\n\n정말 잘했어요! 👏")
     
     st.markdown("---")
@@ -1283,6 +1283,7 @@ with st.sidebar:
     st.markdown("---")
 
     st.info("💡 **선생님 팁**\n\n천천히, 차근차근 생각하면서 풀어봐요!")
+
 
 
 
