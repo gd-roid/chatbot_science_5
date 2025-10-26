@@ -948,53 +948,55 @@ def handle_metacog_answer(ans):
         ask_next_metacog_question()
 
 # 평가 시작
-if st.button("평가 시작", key="start"):
-    if not st.session_state.student.strip():
-        st.error("❌ 이름을 입력해주세요!")
-    elif not st.session_state.student_number.strip():
-        st.error("❌ 번호를 입력해주세요!")
-    elif group_sel == "-- 선택 --":
-        st.warning("차시 묶음을 먼저 선택하세요.")
-    else:
-        init_session()
-        base = q_bank[group_sel][:]
-        n_items = int(st.session_state.n_per_topic)
-        
-        by_type = {}
-        for item in base:
-            qtype = item.get('문항유형', '기타')
-            by_type.setdefault(qtype, []).append(item)
-        
-        selected = []
-        type_list = list(by_type.keys())
-        random.shuffle(type_list)
-        type_idx = 0
-        attempts = 0
-        max_attempts = n_items * len(type_list)
-        
-        while len(selected) < n_items and attempts < max_attempts:
-            current_type = type_list[type_idx % len(type_list)]
-            if by_type[current_type]:
-                available = [q for q in by_type[current_type] if q not in selected]
-                if available:
-                    selected.append(random.choice(available))
-            type_idx += 1
-            attempts += 1
-        
-        if len(selected) < n_items:
-            remaining = [q for q in base if q not in selected]
-            random.shuffle(remaining)
-            selected.extend(remaining[:n_items - len(selected)])
-        
-        st.session_state.plan = selected
-        st.session_state.group = group_sel
-        st.session_state.scope_keywords = build_scope_keywords(all_items, group_sel)
-        st.session_state.phase = "assessment"
-        st.session_state.mode = "asking"
-        
-        student_info = f"{st.session_state.student}({st.session_state.student_class} {st.session_state.student_number}번)"
-        push("assistant", f"🔬 {student_info} 학생, **평가**를 시작합니다!\n\n{st.session_state.group} 범위에서 {n_items}문항을 풀어요.")
-        next_question()
+# 평가 시작 - 초기 상태일 때만 표시
+if st.session_state.mode == "init":
+    if st.button("평가 시작", key="start"):
+        if not st.session_state.student.strip():
+            st.error("❌ 이름을 입력해주세요!")
+        elif not st.session_state.student_number.strip():
+            st.error("❌ 번호를 입력해주세요!")
+        elif group_sel == "-- 선택 --":
+            st.warning("차시 묶음을 먼저 선택하세요.")
+        else:
+            init_session()
+            base = q_bank[group_sel][:]
+            n_items = int(st.session_state.n_per_topic)
+            
+            by_type = {}
+            for item in base:
+                qtype = item.get('문항유형', '기타')
+                by_type.setdefault(qtype, []).append(item)
+            
+            selected = []
+            type_list = list(by_type.keys())
+            random.shuffle(type_list)
+            type_idx = 0
+            attempts = 0
+            max_attempts = n_items * len(type_list)
+            
+            while len(selected) < n_items and attempts < max_attempts:
+                current_type = type_list[type_idx % len(type_list)]
+                if by_type[current_type]:
+                    available = [q for q in by_type[current_type] if q not in selected]
+                    if available:
+                        selected.append(random.choice(available))
+                type_idx += 1
+                attempts += 1
+            
+            if len(selected) < n_items:
+                remaining = [q for q in base if q not in selected]
+                random.shuffle(remaining)
+                selected.extend(remaining[:n_items - len(selected)])
+            
+            st.session_state.plan = selected
+            st.session_state.group = group_sel
+            st.session_state.scope_keywords = build_scope_keywords(all_items, group_sel)
+            st.session_state.phase = "assessment"
+            st.session_state.mode = "asking"
+            
+            student_info = f"{st.session_state.student}({st.session_state.student_class} {st.session_state.student_number}번)"
+            push("assistant", f"🔬 {student_info} 학생, **평가**를 시작합니다!\n\n{st.session_state.group} 범위에서 {n_items}문항을 풀어요.")
+            next_question()
 
 # ==================== 입력 처리 ====================
 user_msg = st.chat_input("여기에 입력…", key=f"input_{st.session_state.input_counter}")
@@ -1278,6 +1280,7 @@ with st.sidebar:
     st.markdown("---")
 
     st.info("💡 **선생님 팁**\n\n천천히, 차근차근 생각하면서 풀어봐요!")
+
 
 
 
