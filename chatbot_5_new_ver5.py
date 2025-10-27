@@ -733,9 +733,6 @@ def evaluate(cur, ans):
         any(verb in qtext for verb in ["구하", "계산", "구해", "몇", "얼마"])
     )
     if is_speed_calc and not is_reading:
-        def has_unit_pattern(text):
-            return bool(re.search(r'\b(?:m/s|km/h|m/초|km/시간|매초|매시간)\b', text or "", flags=re.I))
-        
         numbers = re.findall(r'\d+\.?\d*', ans)
         has_unit_ans = has_unit_pattern(ans)
         
@@ -1289,6 +1286,7 @@ with st.sidebar:
     st.markdown("---")
 
     st.info("💡 **선생님 팁**\n\n천천히, 차근차근 생각하면서 풀어봐요!")
+
 
 
 
