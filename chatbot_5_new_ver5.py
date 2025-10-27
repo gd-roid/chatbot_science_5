@@ -721,7 +721,7 @@ def evaluate(cur, ans):
     phase = st.session_state.phase
     
     def has_unit_pattern(text):
-        return bool(re.search(r'\b(?:m/s|km/h|m/초|km/시간|m|km|초|s|h|미터|킬로미터|매초|매시간)', text or "", flags=re.I))
+        return bool(re.search(r'(?:m/s|km/h|m/초|km/시간|m|km|초|s|h|미터|킬로미터|매초|매시간)', text or "", flags=re.I))
     
     qtext = cur.get('변형', cur.get('질문', ''))
     is_calc = (cur.get('문항유형','') == '계산')
@@ -1289,6 +1289,7 @@ with st.sidebar:
     st.markdown("---")
 
     st.info("💡 **선생님 팁**\n\n천천히, 차근차근 생각하면서 풀어봐요!")
+
 
 
 
