@@ -8,6 +8,11 @@ import openai
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
+def now_kst():
+    from datetime import timezone, timedelta
+    kst = timezone(timedelta(hours=9))
+    return datetime.now(kst)
+
 # ==================== 설정 ====================
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 if not openai.api_key:
@@ -804,7 +809,7 @@ def evaluate(cur, ans):
     save_to_sheet(LOG_TAB,
                   ["ts","student","class","number","group","phase","objective","qid",
                    "question","user_answer","correct_answer","level","correct","attempts"],
-                  [datetime.now().isoformat(timespec="seconds"), st.session_state.student,
+                  [now_kst().isoformat(timespec="seconds"), st.session_state.student,
                    st.session_state.student_class, st.session_state.student_number,
                    st.session_state.group, phase, cur['성취기준'], cur['id'], cur['변형'], ans, cur['정답'], level, str(is_correct), att])
     
@@ -909,7 +914,7 @@ def handle_metacog_answer(ans):
     save_to_sheet(METACOG_TAB,
                   ["ts","student","class","number","group","objective","question","answer",
                    "understanding_level","needs_more","has_misconception"],
-                  [datetime.now().isoformat(timespec="seconds"), st.session_state.student,
+                  [now_kst().isoformat(timespec="seconds"), st.session_state.student,
                    st.session_state.student_class, st.session_state.student_number,
                    st.session_state.group, obj, question, ans,
                    evaluation.get("understanding_level",""),
@@ -1066,7 +1071,7 @@ if user_msg:
                                   {"role":"user","content":f"[범위]{st.session_state.group}\n[질문]{user_msg}"}], 0.3)
                         push("assistant", ans)
                         save_to_sheet(FOLLOWUP_TAB, ["ts","student","class","number","group","question","answer"],
-                                     [datetime.now().isoformat(timespec="seconds"), st.session_state.student,
+                                     [now_kst().isoformat(timespec="seconds"), st.session_state.student,
                                       st.session_state.student_class, st.session_state.student_number,
                                       st.session_state.group, user_msg, ans])
                     except Exception:
@@ -1093,7 +1098,7 @@ if user_msg:
                                   {"role":"user","content":f"[범위]{st.session_state.group}\n[질문]{user_msg}"}], 0.3)
                         push("assistant", ans)
                         save_to_sheet(FOLLOWUP_TAB, ["ts","student","class","number","group","question","answer"],
-                                     [datetime.now().isoformat(timespec="seconds"), st.session_state.student,
+                                     [now_kst().isoformat(timespec="seconds"), st.session_state.student,
                                       st.session_state.student_class, st.session_state.student_number,
                                       st.session_state.group, user_msg, ans])
                     except Exception:
@@ -1125,7 +1130,7 @@ if user_msg:
                                   {"role":"user","content":f"[범위]{st.session_state.group}\n[질문]{user_msg}"}], 0.3)
                         push("assistant", ans)
                         save_to_sheet(FOLLOWUP_TAB, ["ts","student","class","number","group","question","answer"],
-                                     [datetime.now().isoformat(timespec="seconds"), st.session_state.student,
+                                     [now_kst().isoformat(timespec="seconds"), st.session_state.student,
                                       st.session_state.student_class, st.session_state.student_number,
                                       st.session_state.group, user_msg, ans])
                     except Exception:
@@ -1218,7 +1223,7 @@ if st.session_state.mode == "show_diagnosis":
     st.session_state.ignore_next_input = False  # 플래그 해제
 
     save_to_sheet(SUMMARY_TAB, ["ts","student","class","number","group","overall"],
-                 [datetime.now().isoformat(timespec="seconds"), st.session_state.student,
+                 [now_kst().isoformat(timespec="seconds"), st.session_state.student,
                   st.session_state.student_class, st.session_state.student_number,
                   st.session_state.group, overall])
 
@@ -1286,6 +1291,7 @@ with st.sidebar:
     st.markdown("---")
 
     st.info("💡 **선생님 팁**\n\n천천히, 차근차근 생각하면서 풀어봐요!")
+
 
 
 
