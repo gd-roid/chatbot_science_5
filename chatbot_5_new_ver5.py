@@ -83,7 +83,8 @@ def get_worksheet(sheet_name, headers=None):
         if headers:
             ws.append_row(headers)
         return ws
-
+        
+@st.cache_data(ttl=3600)
 def load_questions():
     ws = get_worksheet(QNA_TAB)
     rows = ws.get_all_records()
@@ -1291,6 +1292,7 @@ with st.sidebar:
     st.markdown("---")
 
     st.info("💡 **선생님 팁**\n\n천천히, 차근차근 생각하면서 풀어봐요!")
+
 
 
 
