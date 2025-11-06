@@ -191,6 +191,14 @@ def rule_match(ans, correct, allowed, qid=""):
     if qid == "2-8":
         if ("1초" in ans or "초당" in ans or "초에" in ans) and ("1m" in ca or "미터" in ans):
             return True
+    
+    # 빈칸 채우기 문제 (쉼표로 구분)
+    if "," in correct:
+        correct_parts = [clean_text(p.strip()) for p in correct.split(",")]
+        for part in correct_parts:
+            if part not in ca:
+                return False
+        return True
 
     if ca in set(tgt):
         return True
@@ -238,7 +246,7 @@ def check_correct(item, ans):
     
     # 3. 유연 채점 필요 문항은 GPT로 판단
     if needs_reason:
-        # 이유 문항용 프롬프트 (기존 프롬프트 유지)
+        # 이유 문항용 프롬프트
         sys = (
             "너는 초등 5학년 과학 선생님이다. "
             "학생 답이 정답과 의미상 같은지 판단해. "
@@ -274,6 +282,7 @@ def check_correct(item, ans):
             "   예: 정답 '수현이' → 학생 '수현' (O), '수현이가 빠르다' (O)\n"
             "2. 단, 핵심 내용이 바뀌면 틀린 것\n"
             "   예: 정답 '수현이' → 학생 '민지' (X)\n"
+            "   예: 정답 '롤러코스터' → 학생 '롤러블레이드' (X)\n"
             "3. 추가 설명이 있어도 핵심이 맞으면 정답\n"
             "   예: 정답 '수현이' → 학생 '수현이가 더 빠릅니다' (O)\n"
             "4. 숫자나 단위가 다르면 무조건 틀린 것\n"
@@ -1333,6 +1342,7 @@ with st.sidebar:
     st.markdown("---")
 
     st.info("💡 **선생님 팁**\n\n천천히, 차근차근 생각하면서 풀어봐요!")
+
 
 
 
