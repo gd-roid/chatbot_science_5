@@ -428,6 +428,12 @@ def is_off_topic(msg: str, scope_keywords: set, group_name: str = "") -> bool:
     scope_count = sum(1 for kw in scope_keywords if kw in low)
     if scope_count >= 3:
         return False
+    # 감정 표현, 인사, 감사는 항상 허용
+    friendly_keywords = ["고마워", "감사", "고맙", "재미있", "재밌", "좋았어", "좋아", 
+                         "수고", "신기", "멋져", "대단해", "최고", "짱"]
+    if any(k in low for k in friendly_keywords):
+        return False  # 범위 외 아님 (자연스럽게 대화)
+
     
     sys = (
         f"너는 초등학교 5학년 과학 '{group_name}' 단원만 가르치는 선생님이다.\n\n"
@@ -1342,6 +1348,7 @@ with st.sidebar:
     st.markdown("---")
 
     st.info("💡 **선생님 팁**\n\n천천히, 차근차근 생각하면서 풀어봐요!")
+
 
 
 
