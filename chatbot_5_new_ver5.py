@@ -215,8 +215,8 @@ def check_correct(item, ans):
     needs_flexible = (
         # 이유 문항
         any(k in qtext for k in ["이유를 쓰", "이유도", "왜 그런지", "근거를 쓰", "이유는"]) or
-        # 비교/선택 문항
-        any(k in qtext for k in ["누가", "누구", "어느", "무엇", "어떤 것", "어떤것"]) or
+        # 비교/선택 문항 (계산 제외!)
+        any(k in qtext for k in ["누가", "누구", "어느"]) or  # "무엇", "얼마" 제거!
         # 서술형
         any(k in qtext for k in ["설명하", "말해보", "써 보", "쓰시오"])
     )
@@ -1342,6 +1342,7 @@ with st.sidebar:
     st.markdown("---")
 
     st.info("💡 **선생님 팁**\n\n천천히, 차근차근 생각하면서 풀어봐요!")
+
 
 
 
