@@ -148,6 +148,13 @@ def similarity_score(s1, s2):
         return 0.0
     if s1 == s2:
         return 1.0
+    
+    # 숫자가 다르면 유사도 낮춤 (속력 문제 대응)
+    nums1 = set(re.findall(r'\d+', s1))
+    nums2 = set(re.findall(r'\d+', s2))
+    if nums1 and nums2 and nums1 != nums2:
+        return 0.0  # 숫자가 다르면 아예 다른 답
+    
     if s2 in s1:
         return 0.95
     if s1 in s2:
@@ -156,7 +163,7 @@ def similarity_score(s1, s2):
     common = len(set1 & set2)
     total = len(set1 | set2)
     return common / total if total > 0 else 0.0
-
+    
 # ==================== 안전한 JSON 파싱 ====================
 def safe_json_loads(txt, fallback=None):
     """안전한 JSON 파싱"""
@@ -214,6 +221,24 @@ def rule_match(ans, correct, allowed, qid=""):
             
             if has_number and has_unit and has_movement:  # ← 여기 콜론(:) 확인!
                 return True
+
+    # 2-10 문항 다음에 추가 (2-5 같은 속력 계산 문항)
+    if qid in ["2-5", "2-6", "2-7"]:  # 속력 계산 문항들
+        # 숫자와 단위 정확히 매칭
+        ans_clean = clean_text(ans)
+        correct_clean = clean_text(correct)
+        
+        # 숫자 추출
+        ans_nums = re.findall(r'\d+', ans_clean)
+        correct_nums = re.findall(r'\d+', correct_clean)
+        
+        # 숫자가 정확히 일치해야 함
+        if ans_nums == correct_nums:
+            # 단위도 확인
+            if ("m/s" in ans_clean and "m/s" in correct_clean) or \
+               ("km/h" in ans_clean and "km/h" in correct_clean):
+                return True
+        return False
 
     
     # 빈칸 채우기 문제 (쉼표로 구분)
@@ -452,9 +477,18 @@ def is_off_topic(msg: str, scope_keywords: set, group_name: str = "") -> bool:
     scope_count = sum(1 for kw in scope_keywords if kw in low)
     if scope_count >= 3:
         return False
-    # 감정 표현, 인사, 감사는 항상 허용
-    friendly_keywords = ["고마워", "감사", "고맙", "재미있", "재밌", "좋았어", "좋아", 
-                         "수고", "신기", "멋져", "대단해", "최고", "짱"]
+
+    # 감정 표현, 인사, 감사, 학습 관련 메타 대화는 항상 허용
+    friendly_keywords = [
+        # 감사/칭찬
+        "고마워", "감사", "고맙", "재미있", "재밌", "좋았어", "좋아", 
+        "수고", "신기", "멋져", "대단해", "최고", "짱",
+        # 이해 관련
+        "이해가", "이해를", "모르겠", "헷갈려", "어려워", "어렵", "힘들",
+        "다시", "설명", "알려줘", "알려주", "설명해",
+        # 인사
+        "안녕", "하이", "반가워", "잘가", "잘 가", "바이"
+    ]
     if any(k in low for k in friendly_keywords):
         return False  # 범위 외 아님 (자연스럽게 대화)
 
@@ -1372,6 +1406,7 @@ with st.sidebar:
     st.markdown("---")
 
     st.info("💡 **선생님 팁**\n\n천천히, 차근차근 생각하면서 풀어봐요!")
+
 
 
 
