@@ -194,6 +194,26 @@ def rule_match(ans, correct, allowed, qid=""):
     if qid == "2-8":
         if ("1초" in ans or "초당" in ans or "초에" in ans) and ("1m" in ca or "미터" in ans):
             return True
+
+# 2-10 문항도 동일 처리 (정답에서 숫자/단위 추출)
+    if qid == "2-10":
+        ans_lower = ans.lower().strip()
+        correct_lower = correct.lower() if correct else ""
+        
+        # 정답에서 숫자 추출 (예: "72km" → "72")
+        numbers = re.findall(r'\d+', correct_lower)
+        
+        # 학생 답변 체크
+        if numbers and ("시간" in ans_lower or "1h" in ans_lower):
+            # 정답의 숫자가 학생 답변에 있는지
+            has_number = any(num in ans_lower for num in numbers)
+            # 단위(km 또는 킬로미터) 있는지
+            has_unit = "km" in ans_lower or "킬로미터" in ans_lower
+            # 이동 관련 키워드 있는지
+            has_movement = any(word in ans_lower for word in ["이동", "간다", "움직", "가는"])
+            
+            if has_num
+
     
     # 빈칸 채우기 문제 (쉼표로 구분)
     if "," in correct:
@@ -1351,6 +1371,7 @@ with st.sidebar:
     st.markdown("---")
 
     st.info("💡 **선생님 팁**\n\n천천히, 차근차근 생각하면서 풀어봐요!")
+
 
 
 
