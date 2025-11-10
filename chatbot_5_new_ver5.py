@@ -1203,11 +1203,20 @@ if user_msg:
                 push("user", user_msg)
                 group_name = st.session_state.get('group', '물체의 운동')
                 scope_keywords = st.session_state.get("scope_keywords", set())
-                
                 if is_off_topic(user_msg, scope_keywords, group_name):
                     push("assistant", f"저는 5학년 과학 '{group_name}' 범위를 도와주는 챗봇이에요 🙂\n오늘 범위와 관련된 질문을 해주세요!")
                 else:
-                    sys = "초등 5학년 과학 선생님. 친절하고 간결하게. 쉬운 말로."
+                    # 여기에 추가!
+                    low_msg = user_msg.lower()
+                    is_thanks = any(k in low_msg for k in ["고마워", "감사", "고맙", "최고", "좋아", "재밌"])
+                    is_help_request = any(k in low_msg for k in ["이해", "모르겠", "헷갈려", "어려워", "다시", "설명"])
+                    
+                    if is_thanks:
+                        sys = "초등 5학년 과학 선생님. 학생의 감사 인사에 1-2문장으로 짧고 따뜻하게 답해. 이모지 1개."
+                    elif is_help_request:
+                        sys = "초등 5학년 과학 선생님. 학생이 이해 못한 부분을 쉽게 다시 설명해줘. 2-3문장. 예시 들어가며."
+                    else:
+                        sys = "초등 5학년 과학 선생님. 친절하고 간결하게. 쉬운 말로. 2-3문장."
                     try:
                         ans = gpt([{"role":"system","content":sys},
                                   {"role":"user","content":f"[범위]{st.session_state.group}\n[질문]{user_msg}"}], 0.3)
@@ -1406,6 +1415,7 @@ with st.sidebar:
     st.markdown("---")
 
     st.info("💡 **선생님 팁**\n\n천천히, 차근차근 생각하면서 풀어봐요!")
+
 
 
 
