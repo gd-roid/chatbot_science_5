@@ -212,7 +212,8 @@ def rule_match(ans, correct, allowed, qid=""):
             # 이동 관련 키워드 있는지
             has_movement = any(word in ans_lower for word in ["이동", "간다", "움직", "가는"])
             
-            if has_num
+            if has_number and has_unit and has_movement:  # ← 여기 콜론(:) 확인!
+                return True
 
     
     # 빈칸 채우기 문제 (쉼표로 구분)
@@ -1371,6 +1372,7 @@ with st.sidebar:
     st.markdown("---")
 
     st.info("💡 **선생님 팁**\n\n천천히, 차근차근 생각하면서 풀어봐요!")
+
 
 
 
