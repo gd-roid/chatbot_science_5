@@ -178,16 +178,19 @@ def rule_match(ans, correct, allowed, qid=""):
     """규칙 기반 정답 판정"""
     if not ans:
         return False
+    
+    # 예외 처리 - 2-1 문항은 clean_text 전에 원본으로 체크 (시간→h 변환 방지)
+    if qid == "2-1":
+        ans_lower = ans.lower().strip()
+        if ("거리" in ans_lower and "시간" in ans_lower):
+            if ans_lower.find("거리") < ans_lower.find("시간"):
+                return True
+        return False
+    
     ca = clean_text(ans)
     tgt = [clean_text(correct)] if correct else []
     tgt += [clean_text(x) for x in parse_allowed(allowed)]
 
-    # 예외 처리
-    if qid == "2-1":
-        if ("거리" in ca and "시간" in ca):
-            if ca.find("거리") < ca.find("시간"):
-                return True
-        return False
     if qid == "2-8":
         if ("1초" in ans or "초당" in ans or "초에" in ans) and ("1m" in ca or "미터" in ans):
             return True
@@ -1348,6 +1351,7 @@ with st.sidebar:
     st.markdown("---")
 
     st.info("💡 **선생님 팁**\n\n천천히, 차근차근 생각하면서 풀어봐요!")
+
 
 
 
