@@ -202,8 +202,8 @@ def rule_match(ans, correct, allowed, qid=""):
         if ("1초" in ans or "초당" in ans or "초에" in ans) and ("1m" in ca or "미터" in ans):
             return True
 
-# 2-10 문항도 동일 처리 (정답에서 숫자/단위 추출)
-    if qid == "2-10":
+# 2-10, 2-11 문항도 동일 처리 (정답에서 숫자/단위 추출)
+    if qid in ["2-10", "2-11"]:
         ans_lower = ans.lower().strip()
         correct_lower = correct.lower() if correct else ""
         
@@ -1443,6 +1443,7 @@ with st.sidebar:
     st.markdown("---")
 
     st.info("💡 **선생님 팁**\n\n천천히, 차근차근 생각하면서 풀어봐요!")
+
 
 
 
