@@ -298,9 +298,7 @@ def check_correct(item, ans):
         # 유연 채점 불필요 문항은 즉시 오답
         if not needs_flexible:
             return False
-    
-    # 3. 유연 채점 필요 문항은 GPT로 판단
-    
+       
     # 3. 유연 채점 필요 문항은 GPT로 판단
     if needs_reason:
         # 이유 문항용 프롬프트
@@ -1480,6 +1478,7 @@ with st.sidebar:
     st.markdown("---")
 
     st.info("💡 **선생님 팁**\n\n천천히, 차근차근 생각하면서 풀어봐요!")
+
 
 
 
