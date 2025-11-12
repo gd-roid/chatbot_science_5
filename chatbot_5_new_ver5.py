@@ -273,25 +273,33 @@ def check_correct(item, ans):
     # 이유를 명시적으로 요구하는지
     needs_reason = any(k in qtext for k in ["이유를 쓰", "이유도", "왜 그런지", "근거를 쓰", "이유는"])
     
-    # 1. rule_match로 정확한 일치 확인
-    if rule_match(ans, item['정답'], item['허용답'], qid=item['id']):
-        if needs_reason:
-            # 이유 문항이면 이유도 있는지 체크
-            has_reason = re.search(r"(때문|왜냐|그래서|라서|므로|해서)", ans)
-            has_key_concept = any(k in ans for k in [
-                "시간", "짧", "빠르", "빨리", "느리", "빠름",
-                "거리", "멀", "이동", "도착", "먼저", "늦"
-            ])
-            if has_reason or has_key_concept or len(ans.strip()) >= 15:
+    # 교통안전(6과07-03) 서술형은 바로 GPT로
+    is_traffic_safety = item.get('성취기준', '') == '6과07-03'
+    if is_traffic_safety and needs_flexible:
+        # rule_match 건너뛰고 바로 GPT 채점으로 (아래로)
+        pass
+    else:
+        # 1. rule_match로 정확한 일치 확인
+        if rule_match(ans, item['정답'], item['허용답'], qid=item['id']):
+            if needs_reason:
+                # 이유 문항이면 이유도 있는지 체크
+                has_reason = re.search(r"(때문|왜냐|그래서|라서|므로|해서)", ans)
+                has_key_concept = any(k in ans for k in [
+                    "시간", "짧", "빠르", "빨리", "느리", "빠름",
+                    "거리", "멀", "이동", "도착", "먼저", "늦"
+                ])
+                if has_reason or has_key_concept or len(ans.strip()) >= 15:
+                    return True
+                # 이유 부족하면 GPT에게 (아래로)
+            else:
                 return True
-            # 이유 부족하면 GPT에게 (아래로)
-        else:
-            return True
+        
+        # 2. rule_match 실패한 경우
+        # 유연 채점 불필요 문항은 즉시 오답
+        if not needs_flexible:
+            return False
     
-    # 2. rule_match 실패한 경우
-    # 유연 채점 불필요 문항은 즉시 오답
-    if not needs_flexible:
-        return False
+    # 3. 유연 채점 필요 문항은 GPT로 판단
     
     # 3. 유연 채점 필요 문항은 GPT로 판단
     if needs_reason:
@@ -1472,6 +1480,7 @@ with st.sidebar:
     st.markdown("---")
 
     st.info("💡 **선생님 팁**\n\n천천히, 차근차근 생각하면서 풀어봐요!")
+
 
 
 
