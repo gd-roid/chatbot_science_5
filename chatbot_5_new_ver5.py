@@ -273,9 +273,9 @@ def check_correct(item, ans):
     # 이유를 명시적으로 요구하는지
     needs_reason = any(k in qtext for k in ["이유를 쓰", "이유도", "왜 그런지", "근거를 쓰", "이유는"])
     
-    # 교통안전(6과07-03) 서술형은 바로 GPT로
+    # 교통안전(6과07-03)은 무조건 GPT로 (서술형 여부 상관없이)
     is_traffic_safety = item.get('성취기준', '') == '6과07-03'
-    if is_traffic_safety and needs_flexible:
+    if is_traffic_safety:
         # rule_match 건너뛰고 바로 GPT 채점으로 (아래로)
         pass
     else:
